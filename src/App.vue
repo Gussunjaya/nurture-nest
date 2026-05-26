@@ -1,7 +1,15 @@
-<script setup></script>
+<script setup>
+import MainNavbar from './components/layout/MainNavbar.vue'
+import MainFooter from './components/layout/MainFooter.vue'
+import { RouterView } from 'vue-router'
+</script>
 
 <template>
-  <div class="min-h-screen bg-background">
-    <h1 class="text-primary text-2xl p-4">NurtureNest</h1>
+  <div class="min-h-screen bg-background flex flex-col">
+    <MainNavbar />
+    <main class="flex-1">
+      <RouterView />
+    </main>
+    <MainFooter />
   </div>
 </template>
