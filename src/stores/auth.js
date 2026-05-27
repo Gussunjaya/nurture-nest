@@ -1,4 +1,5 @@
 import { ref, watch } from 'vue'
+import { loadUserData, stopTimer, startTimer } from './plant'
 
 // State reaktif yang diambil dari localStorage
 export const isLoggedIn = ref(localStorage.getItem('isLoggedIn') === 'true')
@@ -27,6 +28,8 @@ export function useAuth() {
     isLoggedIn.value = true
     userEmail.value = email
     userName.value = name
+    loadUserData(email)
+    startTimer()
 
     // Data tanaman akan diinisialisasi nanti di plant store
     return true
@@ -40,9 +43,15 @@ export function useAuth() {
    */
   const login = (email, password) => {
     if (!email || !password) return false
+    const accountExists = localStorage.getItem(`nurturenest_${email}`) !== null
+    if (!accountExists) {
+      return false
+    }
 
     isLoggedIn.value = true
     userEmail.value = email
+    loadUserData(email)
+    startTimer()
 
     // Ambil nama dari localStorage jika sudah pernah register, jika tidak pakai bagian depan email
     const saved = localStorage.getItem(`nurturenest_${email}`)
@@ -66,6 +75,7 @@ export function useAuth() {
     isLoggedIn.value = false
     userEmail.value = ''
     userName.value = ''
+    stopTimer()
   }
 
   return { isLoggedIn, userEmail, userName, register, login, logout }

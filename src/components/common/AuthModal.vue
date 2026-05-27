@@ -36,7 +36,7 @@ const handleLogin = () => {
     // requestPermission()
     emit('close')
   } else {
-    alert('Please fill in both fields')
+    alert('Akun tidak ditemukan atau password salah')
   }
 }
 
@@ -49,7 +49,7 @@ const handleRegister = () => {
     // requestPermission()
     emit('close')
   } else {
-    alert('Email already exists or invalid fields')
+    alert('Email sudah terdaftar atau data tidak lengkap')
   }
 }
 

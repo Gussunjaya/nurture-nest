@@ -18,12 +18,12 @@ const onAuthSuccess = () => {
 
 <template>
   <div class="min-h-screen bg-background flex flex-col">
+    <AuthModal :visible="!isLoggedIn" @close="onAuthSuccess" />
     <!-- Navbar dan Footer hanya tampil jika bukan halaman login/register -->
-    <MainNavbar />
+    <MainNavbar v-if="isLoggedIn" />
     <main class="flex-1">
       <RouterView />
     </main>
     <MainFooter />
-    <AuthModal :visible="!isLoggedIn" @close="onAuthSuccess" />
   </div>
 </template>
