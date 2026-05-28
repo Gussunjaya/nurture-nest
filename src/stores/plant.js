@@ -1,4 +1,6 @@
 import { reactive, watch } from 'vue'
+import { useNotification } from '@/composables/useNotification'
+const { notify } = useNotification()
 
 // State default untuk tanaman baru
 const defaultState = {

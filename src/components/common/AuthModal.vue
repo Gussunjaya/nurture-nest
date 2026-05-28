@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useAuth } from '@/stores/auth'
+import { useNotification } from '@/composables/useNotification'
 
 const props = defineProps({
   visible: Boolean,
@@ -8,6 +9,7 @@ const props = defineProps({
 const emit = defineEmits(['close'])
 
 const auth = useAuth()
+const { requestPermission } = useNotification()
 
 // Mode: true = login, false = register
 const isLoginMode = ref(true)
@@ -33,7 +35,7 @@ const toggleMode = () => {
 
 const handleLogin = () => {
   if (auth.login(loginEmail.value, loginPassword.value)) {
-    // requestPermission()
+    requestPermission()
     emit('close')
   } else {
     alert('Akun tidak ditemukan atau password salah')
@@ -46,7 +48,7 @@ const handleRegister = () => {
     return
   }
   if (auth.register(registerName.value, registerEmail.value, registerPassword.value)) {
-    // requestPermission()
+    requestPermission()
     emit('close')
   } else {
     alert('Email sudah terdaftar atau data tidak lengkap')

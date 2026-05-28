@@ -1,6 +1,8 @@
 import { ref, watch } from 'vue'
 import { loadUserData, stopTimer, startTimer } from './plant'
+import { useNotification } from '@/composables/useNotification'
 
+const { requestPermission } = useNotification()
 // State reaktif yang diambil dari localStorage
 export const isLoggedIn = ref(localStorage.getItem('isLoggedIn') === 'true')
 export const userEmail = ref(localStorage.getItem('userEmail') || '')
