@@ -11,6 +11,11 @@ watch(isLoggedIn, (val) => localStorage.setItem('isLoggedIn', val))
 watch(userEmail, (val) => localStorage.setItem('userEmail', val))
 watch(userName, (val) => localStorage.setItem('userName', val))
 
+if (isLoggedIn.value && userEmail.value) {
+  loadUserData(userEmail.value)
+  startTimer()
+}
+
 export function useAuth() {
   /**
    * Fungsi registrasi dummy

@@ -3,19 +3,22 @@ import { computed } from 'vue'
 import { state, water, giveLight, clean, changePlantType } from '../stores/plant'
 
 // Mapping stage ke nama dan jenis tanaman
-const stageMap = { seed: 'Bibit', sprout: 'Tunas', mature: 'Dewasa', flowering: 'Berbunga' }
-const plantTypeNames = { monstera: 'Monstera', cactus: 'Kaktus', lavender: 'Lavender' }
+const stageMap = { seed: 'Bibit', sprout: 'Tunas', mature: 'Dewasa' }
+const plantTypeNames = { sawit: 'Sawit', cactus: 'Kaktus', beringin: 'Beringin' }
 
 // Emoji berdasarkan stage dan jenis tanaman
 const plantEmoji = computed(() => {
   if (state.stage === 'seed') return '🌱'
   if (state.stage === 'sprout') return '🌿'
-  if (state.stage === 'mature') return state.plantType === 'cactus' ? '🌵' : '🌳'
-  return '🌸'
+  if (state.stage === 'mature') {
+    if (state.plantType === 'sawit') return '🌴'
+    if (state.plantType === 'cactus') return '🌵'
+    return '🌳'
+  }
 })
 
 const stageName = computed(() => stageMap[state.stage] || 'Bibit')
-const plantTypeName = computed(() => plantTypeNames[state.plantType] || 'Monstera')
+const plantTypeName = computed(() => plantTypeNames[state.plantType] || 'Kaktus')
 </script>
 
 <style scoped>
@@ -63,7 +66,7 @@ const plantTypeName = computed(() => plantTypeNames[state.plantType] || 'Monster
         </div>
         <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
           <div
-            class="h-full bg-blue-500 rounded-full"
+            class="h-full bg-blue-500 rounded-full transition-width duration-1000"
             :style="{ width: state.moisture + '%' }"
           ></div>
         </div>
@@ -74,7 +77,7 @@ const plantTypeName = computed(() => plantTypeNames[state.plantType] || 'Monster
         </div>
         <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
           <div
-            class="h-full bg-yellow-400 rounded-full"
+            class="h-full bg-yellow-400 rounded-full transition-width duration-1000"
             :style="{ width: state.light + '%' }"
           ></div>
         </div>
@@ -85,7 +88,7 @@ const plantTypeName = computed(() => plantTypeNames[state.plantType] || 'Monster
         </div>
         <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
           <div
-            class="h-full bg-green-500 rounded-full"
+            class="h-full bg-green-500 rounded-full transition-width duration-1000"
             :style="{ width: state.cleanliness + '%' }"
           ></div>
         </div>
@@ -96,19 +99,19 @@ const plantTypeName = computed(() => plantTypeNames[state.plantType] || 'Monster
     <div class="flex flex-col sm:flex-row gap-3 justify-center mt-4">
       <button
         @click="water"
-        class="w-full sm:w-auto bg-primary text-white px-5 py-2 rounded-full flex items-center justify-center gap-2 hover:bg-secondary transition"
+        class="w-full sm:w-auto bg-primary text-black px-5 py-2 rounded-full flex items-center justify-center gap-2 hover:bg-white transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg"
       >
         💧 Siram
       </button>
       <button
         @click="giveLight"
-        class="w-full sm:w-auto bg-primary text-white px-5 py-2 rounded-full flex items-center justify-center gap-2 hover:bg-secondary transition"
+        class="w-full sm:w-auto bg-primary text-black px-5 py-2 rounded-full flex items-center justify-center gap-2 hover:bg-white transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg"
       >
         ☀️ Cahaya
       </button>
       <button
         @click="clean"
-        class="w-full sm:w-auto bg-primary text-white px-5 py-2 rounded-full flex items-center justify-center gap-2 hover:bg-secondary transition"
+        class="w-full sm:w-auto bg-primary text-black px-5 py-2 rounded-full flex items-center justify-center gap-2 hover:bg-white transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg"
       >
         🧹 Bersihkan
       </button>
@@ -119,13 +122,13 @@ const plantTypeName = computed(() => plantTypeNames[state.plantType] || 'Monster
       <p class="text-sm text-gray-500 mb-2">🌿 Ganti jenis tanaman</p>
       <div class="flex gap-2 flex-wrap">
         <button
-          @click="changePlantType('monstera')"
+          @click="changePlantType('sawit')"
           :class="[
             'px-3 py-1 rounded-full text-sm',
-            state.plantType === 'monstera' ? 'bg-primary text-white' : 'bg-gray-100',
+            state.plantType === 'sawit' ? 'bg-primary text-white' : 'bg-gray-100',
           ]"
         >
-          Monstera
+          Sawit
         </button>
         <button
           @click="changePlantType('cactus')"
@@ -137,13 +140,13 @@ const plantTypeName = computed(() => plantTypeNames[state.plantType] || 'Monster
           Kaktus
         </button>
         <button
-          @click="changePlantType('lavender')"
+          @click="changePlantType('beringin')"
           :class="[
             'px-3 py-1 rounded-full text-sm',
-            state.plantType === 'lavender' ? 'bg-primary text-white' : 'bg-gray-100',
+            state.plantType === 'beringin' ? 'bg-primary text-white' : 'bg-gray-100',
           ]"
         >
-          Lavender
+          Beringin
         </button>
       </div>
     </div>

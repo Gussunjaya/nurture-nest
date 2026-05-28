@@ -5,10 +5,10 @@ const defaultState = {
   moisture: 70, // kelembaban
   light: 70, // cahaya
   cleanliness: 70, // kebersihan
-  stage: 'seed', // seed, sprout, mature, flowering
+  stage: 'seed', // seed, sprout, mature
   history: [], // [{ action, time }]
   isGameOver: false, // apakah tanaman mati
-  plantType: 'monstera', // monstera, cactus, lavender
+  plantType: 'cactus',
   subscriptionPlan: 'free',
   freeActionsLeft: 3, // sisa aksi gratis untuk user free
   userName: '',
@@ -72,8 +72,7 @@ function addHistory(action) {
   state.history.unshift({ action, time: new Date().toLocaleTimeString() })
   if (state.history.length > 10) state.history.pop()
   const totalCares = state.history.length
-  if (totalCares >= 20) state.stage = 'flowering'
-  else if (totalCares >= 10) state.stage = 'mature'
+  if (totalCares >= 10) state.stage = 'mature'
   else if (totalCares >= 5) state.stage = 'sprout'
   else state.stage = 'seed'
 }
@@ -84,11 +83,11 @@ function checkNotify() {
   if (state.moisture < 30) notify('NurtureNest', '🌱 Tanamanmu haus! Siram segera.')
   if (state.light < 20) notify('NurtureNest', '☀️ Tanamanmu butuh sinar matahari.')
   if (
-    state.stage === 'flowering' &&
+    state.stage === 'mature' &&
     state.history.length &&
-    state.history[0].action !== '🌸 Mekar'
+    state.history[0].action !== '🌲 Tanaman mu sudah Tumbuh'
   ) {
-    notify('NurtureNest', '🌸 Selamat! Tanamanmu berbunga!')
+    notify('NurtureNest', '🌲 Selamat! Tanamanmu Besar!')
   }
   if (state.moisture <= 0 || state.light <= 0 || state.cleanliness <= 0) {
     state.isGameOver = true
