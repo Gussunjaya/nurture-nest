@@ -14,6 +14,8 @@ const defaultState = {
   subscriptionPlan: 'free',
   freeActionsLeft: 3, // sisa aksi gratis untuk user free
   userName: '',
+  matureNotified: false, // untuk memastikan notifikasi mature hanya sekali
+  careCount: 0, // jumlah total aksi perawatan
 }
 
 let currentUser = null
@@ -40,7 +42,16 @@ export function loadUserData(email) {
 
 /** Reset semua state ke default */
 function resetState() {
-  Object.assign(state, { ...defaultState, userName: state.userName, freeActionsLeft: 3 })
+  // Hanya reset properti tanaman
+  state.moisture = defaultState.moisture
+  state.light = defaultState.light
+  state.cleanliness = defaultState.cleanliness
+  state.stage = defaultState.stage
+  state.history = []
+  state.isGameOver = false
+  state.careCount = 0
+  updateStage()
+  // Jangan sentuh subscriptionPlan, freeActionsLeft, plantType, userName
 }
 
 // Auto-save ke localStorage setiap kali state berubah
@@ -59,6 +70,8 @@ watch(
         subscriptionPlan: state.subscriptionPlan,
         freeActionsLeft: state.freeActionsLeft,
         userName: state.userName,
+        matureNotified: state.matureNotified,
+        careCount: state.careCount,
       }
       localStorage.setItem(`nurturenest_${currentUser}`, JSON.stringify(toSave))
     }
@@ -68,15 +81,27 @@ watch(
 
 /**
  * Menambahkan aksi ke riwayat dan memperbarui stage pertumbuhan
- * Stage berdasarkan jumlah aksi: 0-4 seed, 5-9 sprout, 10-19 mature, >=20 flowering
+ * Stage berdasarkan jumlah aksi: 0-4 seed, 5-9 sprout, 10+ mature
  */
 function addHistory(action) {
   state.history.unshift({ action, time: new Date().toLocaleTimeString() })
   if (state.history.length > 10) state.history.pop()
-  const totalCares = state.history.length
-  if (totalCares >= 10) state.stage = 'mature'
-  else if (totalCares >= 5) state.stage = 'sprout'
-  else state.stage = 'seed'
+  updateStage()
+}
+
+function updateStage() {
+  if (state.careCount >= 10) {
+    state.stage = 'mature'
+  } else if (state.careCount >= 5) {
+    state.stage = 'sprout'
+  } else {
+    state.stage = 'seed'
+  }
+}
+
+function addSystemLog(action) {
+  state.history.unshift({ action, time: new Date().toLocaleTimeString() })
+  if (state.history.length > 10) state.history.pop()
 }
 
 /** Mengirim notifikasi jika kondisi tertentu terpenuhi (haus, kurang cahaya, dll) */
@@ -84,12 +109,10 @@ function checkNotify() {
   if (state.isGameOver) return
   if (state.moisture < 30) notify('NurtureNest', '🌱 Tanamanmu haus! Siram segera.')
   if (state.light < 20) notify('NurtureNest', '☀️ Tanamanmu butuh sinar matahari.')
-  if (
-    state.stage === 'mature' &&
-    state.history.length &&
-    state.history[0].action !== '🌲 Tanaman mu sudah Tumbuh'
-  ) {
+  if (state.cleanliness < 20) notify('NurtureNest', '🧹 Tanamanmu kotor! Bersihkan segera.')
+  if (state.stage === 'mature' && !state.matureNotified) {
     notify('NurtureNest', '🌲 Selamat! Tanamanmu Besar!')
+    state.matureNotified = true
   }
   if (state.moisture <= 0 || state.light <= 0 || state.cleanliness <= 0) {
     state.isGameOver = true
@@ -117,6 +140,8 @@ export function water() {
   } else {
     addHistory('💧 Disiram')
   }
+  state.careCount++
+  updateStage()
   checkNotify()
 }
 
@@ -131,6 +156,8 @@ export function giveLight() {
   } else {
     addHistory('☀️ Diberi cahaya')
   }
+  state.careCount++
+  updateStage()
   checkNotify()
 }
 
@@ -145,6 +172,8 @@ export function clean() {
   } else {
     addHistory('🧹 Dibersihkan')
   }
+  state.careCount++
+  updateStage()
   checkNotify()
 }
 
@@ -152,6 +181,8 @@ export function clean() {
 export function resetGame() {
   resetState()
   state.isGameOver = false
+  state.careCount = 0
+  updateStage()
   addHistory('🔄 Game dimulai ulang')
   checkNotify()
 }
@@ -160,7 +191,7 @@ export function resetGame() {
 export function changePlantType(type) {
   if (state.subscriptionPlan === 'premium') {
     state.plantType = type
-    addHistory(
+    addSystemLog(
       `🌿 Ganti tanaman ke ${type === 'cactus' ? 'Kaktus' : type === 'lavender' ? 'Lavender' : 'Monstera'}`,
     )
   }
@@ -171,10 +202,10 @@ export function setSubscriptionPlan(plan) {
   state.subscriptionPlan = plan
   if (plan === 'premium') {
     state.freeActionsLeft = null // tidak terbatas
-    addHistory('💎 Upgrade ke Premium! Aksi tidak terbatas.')
+    addSystemLog('💎 Upgrade ke Premium! Aksi tidak terbatas.')
   } else {
     state.freeActionsLeft = 3
-    addHistory('💎 Turun ke Free')
+    addSystemLog('💎 Turun ke Free')
   }
 }
 

@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { state, water, giveLight, clean, changePlantType } from '../stores/plant'
+import { state, water, giveLight, clean, changePlantType, resetGame } from '../stores/plant'
 
 // Mapping stage ke nama dan jenis tanaman
 const stageMap = { seed: 'Bibit', sprout: 'Tunas', mature: 'Dewasa' }
@@ -16,6 +16,12 @@ const plantEmoji = computed(() => {
     return '🌳'
   }
 })
+
+const handleReset = () => {
+  if (confirm('Apakah Anda yakin ingin mereset permainan? Semua kemajuan akan hilang.')) {
+    resetGame()
+  }
+}
 
 const stageName = computed(() => stageMap[state.stage] || 'Bibit')
 const plantTypeName = computed(() => plantTypeNames[state.plantType] || 'Kaktus')
@@ -37,7 +43,16 @@ const plantTypeName = computed(() => plantTypeNames[state.plantType] || 'Kaktus'
 }
 </style>
 <template>
-  <div class="bg-white rounded-2xl shadow-md p-6">
+  <div class="bg-white rounded-2xl shadow-md p-6 relative">
+    <!-- Tombol reset di pojok kanan atas -->
+    <button
+      v-if="state.subscriptionPlan === 'premium'"
+      @click="handleReset"
+      class="absolute top-2 right-2 bg-white text-white rounded-full p-1 w-8 h-8 flex items-center justify-center hover:bg-red-700 transition-all duration-200 hover:scale-105 active:scale-95"
+      title="Reset Tanaman"
+    >
+      🔄
+    </button>
     <!-- Avatar tanaman dengan animasi bounce -->
     <div class="text-center">
       <div class="text-7xl md:text-8xl animate-bounce">
