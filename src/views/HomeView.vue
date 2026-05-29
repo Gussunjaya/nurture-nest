@@ -38,19 +38,10 @@ const fetchQuoteWithRetry = async () => {
 
     await new Promise((resolve) => setTimeout(resolve, 2000))
 
-    status.value = 'loading'
+    quote.value = fallbackQuotes[fallbackIndex]
+    fallbackIndex = (fallbackIndex + 1) % fallbackQuotes.length
+    status.value = 'success'
     errorMessage.value = ''
-
-    try {
-      const retryResult = await fetchFromAPI()
-      quote.value = retryResult
-      fallbackIndex = 0
-      status.value = 'success'
-    } catch (retryErr) {
-      quote.value = fallbackQuotes[fallbackIndex]
-      fallbackIndex = (fallbackIndex + 1) % fallbackQuotes.length
-      status.value = 'success'
-    }
   }
 }
 </script>
