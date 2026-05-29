@@ -60,7 +60,7 @@ const handleReset = () => {
               <h3 class="text-xl font-bold">🌿 Free</h3>
               <ul class="text-sm text-left mt-3 space-y-1">
                 <li>✓ Hanya 3 aksi gratis</li>
-                <li>✓ Tanaman dasar (Monstera)</li>
+                <li>✓ Tanaman dasar (Kaktus)</li>
                 <li>✓ Statistik & riwayat</li>
               </ul>
               <button

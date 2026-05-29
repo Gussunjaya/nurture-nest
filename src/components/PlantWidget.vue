@@ -1,31 +1,110 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import { state, water, giveLight, clean, changePlantType, resetGame } from '../stores/plant'
 
 const stageMap = { seed: 'Bibit', sprout: 'Tunas', mature: 'Dewasa' }
 const plantTypeNames = { sawit: 'Sawit', cactus: 'Kaktus', beringin: 'Beringin' }
 
+// Tanaman aktif
+const activePlant = computed(() => state.plants[state.currentPlantType])
+
+// Emoji berdasarkan stage dan jenis tanaman
 const plantEmoji = computed(() => {
-  if (state.stage === 'seed') return '🌱'
-  if (state.stage === 'sprout') return '🪴'
-  if (state.stage === 'mature') {
-    if (state.plantType === 'sawit') return '🌴'
-    if (state.plantType === 'cactus') return '🌵'
+  const stage = activePlant.value.stage
+  const type = state.currentPlantType
+  if (stage === 'seed') return '🌱'
+  if (stage === 'sprout') return '🪴'
+  if (stage === 'mature') {
+    if (type === 'sawit') return '🌴'
+    if (type === 'cactus') return '🌵'
     return '🌳'
+  }
+  return '🌱'
+})
+
+// Cooldown reset
+const cooldownRemaining = ref(0)
+let cooldownInterval = null
+
+const isResetCooldown = computed(() => {
+  return state.resetCooldownUntil && Date.now() < state.resetCooldownUntil
+})
+
+const updateCooldown = () => {
+  if (state.resetCooldownUntil && Date.now() < state.resetCooldownUntil) {
+    cooldownRemaining.value = Math.ceil((state.resetCooldownUntil - Date.now()) / 1000)
+  } else {
+    cooldownRemaining.value = 0
+    if (cooldownInterval) {
+      clearInterval(cooldownInterval)
+      cooldownInterval = null
+    }
+
+    if (state.resetCooldownUntil && Date.now() >= state.resetCooldownUntil) {
+      state.resetCooldownUntil = null
+      state.resetCount = 0
+    }
+  }
+}
+
+onMounted(() => {
+  updateCooldown()
+  if (isResetCooldown.value) {
+    cooldownInterval = setInterval(updateCooldown, 1000)
   }
 })
 
+onUnmounted(() => {
+  if (cooldownInterval) clearInterval(cooldownInterval)
+})
+
+watch(
+  () => state.resetCooldownUntil,
+  () => {
+    updateCooldown()
+    if (isResetCooldown.value && !cooldownInterval) {
+      cooldownInterval = setInterval(updateCooldown, 1000)
+    } else if (!isResetCooldown.value && cooldownInterval) {
+      clearInterval(cooldownInterval)
+      cooldownInterval = null
+    }
+  },
+)
+
 const handleReset = () => {
-  if (confirm('Apakah Anda yakin ingin mereset permainan? Semua kemajuan akan hilang.')) {
+  if (isResetCooldown.value) return
+  if (confirm('Yakin ingin mereset tanaman ini? Semua kemajuan untuk tanaman ini akan hilang.')) {
     resetGame()
   }
 }
 
-const stageName = computed(() => stageMap[state.stage] || 'Bibit')
-const plantTypeName = computed(() => plantTypeNames[state.plantType] || 'Kaktus')
+const stageName = computed(() => stageMap[activePlant.value.stage] || 'Bibit')
+const plantTypeName = computed(() => plantTypeNames[state.currentPlantType] || 'Tanaman')
 </script>
 
 <style scoped>
+/* Scrollbar untuk riwayat perawatan */
+.history-scroll {
+  max-height: 180px;
+  overflow-y: auto;
+  scrollbar-width: bold;
+}
+.history-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.history-scroll::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+.history-scroll::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 10px;
+}
+.history-scroll::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Animasi bounce */
 @keyframes bounce {
   0%,
   100% {
@@ -38,20 +117,42 @@ const plantTypeName = computed(() => plantTypeNames[state.plantType] || 'Kaktus'
 .animate-bounce {
   animation: bounce 2s infinite;
 }
+
+/* Efek tooltip mouse */
+.cursor-not-allowed {
+  cursor: not-allowed;
+}
 </style>
 
 <template>
   <div class="bg-white rounded-2xl shadow-md p-4 sm:p-6 relative">
-    <!-- Tombol reset hanya untuk premium -->
+    <!-- Tombol reset (hanya premium) -->
     <button
       v-if="state.subscriptionPlan === 'premium'"
       @click="handleReset"
-      class="absolute top-2 right-2 bg-gray-100 hover:bg-red-500 text-gray-600 hover:text-white rounded-full p-2 w-8 h-8 flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95"
-      title="Reset Tanaman"
+      :disabled="isResetCooldown"
+      :class="[
+        'absolute top-2 right-2 rounded-full p-2 w-8 h-8 flex items-center justify-center transition-all duration-200',
+        isResetCooldown
+          ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+          : 'bg-gray-100 hover:bg-red-500 text-gray-600 hover:text-white hover:scale-105 active:scale-95',
+      ]"
+      :title="
+        isResetCooldown ? `Sabar ya bos ${cooldownRemaining} detik lagi` : 'Reset tanaman ini'
+      "
     >
       🔄
     </button>
 
+    <!-- Indikator cooldown di samping tombol -->
+    <div
+      v-if="isResetCooldown && state.subscriptionPlan === 'premium'"
+      class="absolute top-2 right-12 text-xs text-red-500 font-medium"
+    >
+      ⏱️ {{ cooldownRemaining }}s
+    </div>
+
+    <!-- Area tanaman -->
     <div class="text-center">
       <div class="text-6xl sm:text-7xl md:text-8xl animate-bounce">
         {{ plantEmoji }}
@@ -61,7 +162,7 @@ const plantTypeName = computed(() => plantTypeNames[state.plantType] || 'Kaktus'
       </p>
     </div>
 
-    <!-- Indikator sisa aksi -->
+    <!-- Status langganan dan sisa aksi -->
     <div v-if="state.subscriptionPlan === 'free'" class="text-center mt-2">
       <span class="text-xs sm:text-sm bg-amber-100 text-amber-700 px-3 py-1 rounded-full">
         ✨ Sisa aksi gratis: {{ state.freeActionsLeft }} / 3
@@ -77,34 +178,34 @@ const plantTypeName = computed(() => plantTypeNames[state.plantType] || 'Kaktus'
     <div class="space-y-4 my-6">
       <div>
         <div class="flex justify-between text-sm mb-1">
-          <span>💧 Kelembaban</span><span>{{ state.moisture }}%</span>
+          <span>💧 Kelembaban</span><span>{{ activePlant.moisture }}%</span>
         </div>
         <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
           <div
             class="h-full bg-blue-500 rounded-full transition-all duration-500"
-            :style="{ width: state.moisture + '%' }"
+            :style="{ width: activePlant.moisture + '%' }"
           ></div>
         </div>
       </div>
       <div>
         <div class="flex justify-between text-sm mb-1">
-          <span>☀️ Cahaya</span><span>{{ state.light }}%</span>
+          <span>☀️ Cahaya</span><span>{{ activePlant.light }}%</span>
         </div>
         <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
           <div
             class="h-full bg-yellow-400 rounded-full transition-all duration-500"
-            :style="{ width: state.light + '%' }"
+            :style="{ width: activePlant.light + '%' }"
           ></div>
         </div>
       </div>
       <div>
         <div class="flex justify-between text-sm mb-1">
-          <span>🧹 Kebersihan</span><span>{{ state.cleanliness }}%</span>
+          <span>🧹 Kebersihan</span><span>{{ activePlant.cleanliness }}%</span>
         </div>
         <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
           <div
             class="h-full bg-green-500 rounded-full transition-all duration-500"
-            :style="{ width: state.cleanliness + '%' }"
+            :style="{ width: activePlant.cleanliness + '%' }"
           ></div>
         </div>
       </div>
@@ -132,7 +233,7 @@ const plantTypeName = computed(() => plantTypeNames[state.plantType] || 'Kaktus'
       </button>
     </div>
 
-    <!-- Pemilih jenis tanaman (premium) -->
+    <!-- Pemilih jenis tanaman (hanya premium) -->
     <div v-if="state.subscriptionPlan === 'premium'" class="mt-6 pt-4 border-t">
       <p class="text-sm text-gray-500 mb-2">🌿 Ganti jenis tanaman</p>
       <div class="flex flex-wrap gap-2">
@@ -140,7 +241,7 @@ const plantTypeName = computed(() => plantTypeNames[state.plantType] || 'Kaktus'
           @click="changePlantType('sawit')"
           :class="[
             'px-3 py-1.5 rounded-full text-sm font-medium transition-all',
-            state.plantType === 'sawit'
+            state.currentPlantType === 'sawit'
               ? 'bg-green-600 text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
           ]"
@@ -151,7 +252,7 @@ const plantTypeName = computed(() => plantTypeNames[state.plantType] || 'Kaktus'
           @click="changePlantType('cactus')"
           :class="[
             'px-3 py-1.5 rounded-full text-sm font-medium transition-all',
-            state.plantType === 'cactus'
+            state.currentPlantType === 'cactus'
               ? 'bg-green-600 text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
           ]"
@@ -162,7 +263,7 @@ const plantTypeName = computed(() => plantTypeNames[state.plantType] || 'Kaktus'
           @click="changePlantType('beringin')"
           :class="[
             'px-3 py-1.5 rounded-full text-sm font-medium transition-all',
-            state.plantType === 'beringin'
+            state.currentPlantType === 'beringin'
               ? 'bg-green-600 text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
           ]"
@@ -175,15 +276,15 @@ const plantTypeName = computed(() => plantTypeNames[state.plantType] || 'Kaktus'
       🔒 Upgrade ke Premium untuk mengganti jenis tanaman
     </div>
 
-    <!-- Riwayat perawatan -->
+    <!-- Riwayat perawatan dengan scrollbar tipis -->
     <div class="mt-6 pt-4 border-t">
       <h3 class="font-semibold text-gray-700 mb-2">📜 Riwayat Perawatan</h3>
-      <div v-if="state.history.length === 0" class="text-gray-400 text-sm text-center py-2">
+      <div v-if="activePlant.history.length === 0" class="text-gray-400 text-sm text-center py-2">
         Belum ada riwayat
       </div>
-      <ul class="space-y-1 max-h-48 overflow-y-auto">
+      <ul class="history-scroll space-y-1 pr-1">
         <li
-          v-for="(item, idx) in state.history"
+          v-for="(item, idx) in activePlant.history"
           :key="idx"
           class="text-sm border-b border-gray-100 py-1 flex justify-between flex-wrap gap-1"
         >
