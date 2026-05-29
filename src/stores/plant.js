@@ -199,13 +199,18 @@ export function changePlantType(type) {
 
 /** Mengubah paket langganan (free/premium) */
 export function setSubscriptionPlan(plan) {
+  const wasPremium = state.subscriptionPlan === 'premium'
   state.subscriptionPlan = plan
+
   if (plan === 'premium') {
     state.freeActionsLeft = null // tidak terbatas
     addSystemLog('💎 Upgrade ke Premium! Aksi tidak terbatas.')
   } else {
-    state.freeActionsLeft = 3
-    addSystemLog('💎 Turun ke Free')
+    if (wasPremium) {
+      state.freeActionsLeft = 3
+      addSystemLog('📉 Turun Ke Free')
+    } else {
+    }
   }
 }
 

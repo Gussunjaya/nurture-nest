@@ -5,6 +5,7 @@ const props = defineProps({
   visible: Boolean,
   type: String, // 'subscription' atau 'reset'
   title: String,
+  isFromProfile: { type: Boolean, default: false },
 })
 const emit = defineEmits(['close'])
 
@@ -63,8 +64,15 @@ const handleReset = () => {
                 <li>✓ Tanaman dasar (Monstera)</li>
                 <li>✓ Statistik & riwayat</li>
               </ul>
-              <button @click="selectPlan('free')" class="mt-4 w-full border py-1 rounded-full">
+              <button
+                v-if="isFromProfile"
+                @click="selectPlan('free')"
+                class="mt-4 w-full border py-1 rounded-full"
+              >
                 Tetap Free
+              </button>
+              <button v-else @click="close" class="mt-4 w-full border py-1 rounded-full">
+                Tutup
               </button>
             </div>
             <div class="border-2 border-yellow-400 rounded-xl p-4 text-center relative">
