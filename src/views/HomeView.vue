@@ -33,7 +33,6 @@ const fetchQuoteWithRetry = async () => {
     fallbackIndex = 0
     status.value = 'success'
   } catch (err) {
-    console.error('Percobaan pertama gagal:', err)
     errorMessage.value = '❌ Gagal mengambil quotes dari perpustakaan negara'
     status.value = 'error'
 
@@ -48,7 +47,6 @@ const fetchQuoteWithRetry = async () => {
       fallbackIndex = 0
       status.value = 'success'
     } catch (retryErr) {
-      console.error('Retry juga gagal:', retryErr)
       quote.value = fallbackQuotes[fallbackIndex]
       fallbackIndex = (fallbackIndex + 1) % fallbackQuotes.length
       status.value = 'success'
