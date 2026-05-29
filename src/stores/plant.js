@@ -50,6 +50,7 @@ function resetState() {
   state.history = []
   state.isGameOver = false
   state.careCount = 0
+  state.matureNotified = false
   updateStage()
   // Jangan sentuh subscriptionPlan, freeActionsLeft, plantType, userName
 }
@@ -112,11 +113,18 @@ function checkNotify() {
   if (state.cleanliness < 20) notify('NurtureNest', '🧹 Tanamanmu kotor! Bersihkan segera.')
   if (state.stage === 'mature' && !state.matureNotified) {
     notify('NurtureNest', '🌲 Selamat! Tanamanmu Besar!')
+    addSystemLog('🌲 Tanaman sudah dewasa')
     state.matureNotified = true
   }
   if (state.moisture <= 0 || state.light <= 0 || state.cleanliness <= 0) {
     state.isGameOver = true
     notify('NurtureNest', '💔 Tanamanmu layu... Mulai lagi untuk mencoba.')
+
+    let causeDie = ''
+    if (state.moisture <= 0) causeDie = 'kehabisan air'
+    else if (state.light <= 0) causeDie = 'kekurangan cahaya'
+    else if (state.cleanliness <= 0) causeDie = 'kotor'
+    addSystemLog(`💀 Tanaman mati karena ${causeDie}`)
   }
 }
 

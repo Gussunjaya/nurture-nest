@@ -18,12 +18,13 @@ const { toasts } = useNotification()
   animation: slideIn 0.3s ease-out;
 }
 </style>
+
 <template>
   <div class="fixed bottom-4 right-4 z-50 space-y-2">
     <div
       v-for="toast in toasts"
       :key="toast.id"
-      class="bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg max-w-xs animate-slide-in"
+      class="bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg max-w-xs animate-slide-in text-sm"
     >
       <strong>{{ toast.title }}</strong
       ><br />{{ toast.body }}
