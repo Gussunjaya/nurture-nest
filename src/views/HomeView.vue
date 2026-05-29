@@ -14,7 +14,7 @@ const fallbackQuotes = [
 let fallbackIndex = 0
 
 const fetchFromAPI = async () => {
-  const response = await axios.get('https://zenquotes.io/api/random')
+  const response = await axios.get('/api/quote')
   if (response.data && response.data[0]) {
     return { content: response.data[0].q, author: response.data[0].a }
   }
