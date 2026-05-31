@@ -31,16 +31,23 @@ watch(
 const handleShowSubscription = () => {
   showSubscriptionModal.value = true
 }
+const handleGameOver = () => {
+  console.log('Gameover muncul')
+  showGameOverModal.value = true
+}
 
 onMounted(() => {
-  if (state.isGameOver) {
+  const activePlant = state.plants[state.currentPlantType]
+  if (activePlant && activePlant.isGameOver) {
     showGameOverModal.value = true
   }
   window.addEventListener('show-subscription-modal', handleShowSubscription)
+  window.addEventListener('show-gameover-modal', handleGameOver)
 })
 
 onUnmounted(() => {
   window.removeEventListener('show-subscription-modal', handleShowSubscription)
+  window.removeEventListener('show-gameover-modal', handleGameOver)
 })
 </script>
 

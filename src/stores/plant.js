@@ -178,6 +178,7 @@ function checkNotify() {
     else if (plant.cleanliness <= 0) causeDie = 'kotor'
     notify('NurtureNest', '💔 Tanamanmu layu... Mulai lagi untuk mencoba.')
     addSystemLog(`💀 Tanaman mati karena ${causeDie}`)
+    window.dispatchEvent(new CustomEvent('show-gameover-modal'))
   }
 }
 
